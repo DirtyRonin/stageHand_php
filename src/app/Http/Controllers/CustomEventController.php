@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\CustomEvent;
 use Illuminate\Http\Request;
+use Illuminate\Auth\AuthenticationException;
 
 class CustomEventController extends Controller
 {
     public function index()
     {
         return CustomEvent::orderBy('date')
+            ->with('location')
+            ->with('band')
+            ->with('setlist')
             ->paginate();
     }
 
@@ -36,11 +40,13 @@ class CustomEventController extends Controller
      */
     public function show($id)
     {
-        if (auth()->user()->customEvents()->where('customEventId', $id)->exists()) {
-            return CustomEvent::findOrFail($id);
-        }
+        return CustomEvent::findOrFail($id);
 
-        return new AuthenticationException('Not your CustomEvent');
+        // if (auth()->user()->customEvents()->where('customEventId', $id)->exists()) {
+        //     return CustomEvent::findOrFail($id);
+        // }
+
+        // return new AuthenticationException('Not your CustomEvent');
     }
 
     /**

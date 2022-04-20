@@ -16,8 +16,6 @@ class BandSeeder extends Seeder
      */
     public function run()
     {
-        
-
         Band::factory()
         ->count(10)
         ->has(User::factory()->count(3))

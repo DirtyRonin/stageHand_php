@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SetlistSongController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Band;
 use App\Models\User;
@@ -16,6 +17,8 @@ use Illuminate\Http\Request;
 | contains the "web" middleware group. Now create something great!
 |
 */
+
+Route::get('/setlistsongs/{customEventId}', [SetlistSongController::class, 'setlistEditor']);
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

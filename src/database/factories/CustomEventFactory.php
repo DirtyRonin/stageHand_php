@@ -4,7 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Band;
 use App\Models\CustomEvent;
-use App\Models\Location;
+use App\Models\Song;
 use App\Models\Setlist;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -25,19 +25,20 @@ class CustomEventFactory extends Factory
     public function definition()
     {
 
-        $band = Band::where('title', 'Neptune Kings')->first();
-
-
-        $setlistCount = Band::find($band->id)->withCount('setlists')->first();
-        
-
-        $locationCount = count(Location::all());
+        $bandId = 1; // 'Neptune Kings'
+        $locationId = 1;
+        $setlist = Setlist::factory()->count(1)->create()->each(function ($setlist) {
+            Song::factory()->count(10)->create()->each(function ($song, $key) use ($setlist) {
+            $setlist->songs()->attach($song->id, ['order' => $key]);
+            });
+        });
 
         return [
-            'date'=> $this->faker->date(),
-            'bandId' => $band->id,
-            'setlistId' => rand(1, $setlistCount->setlists_count),
-            'locationId' => rand(1, $locationCount)
+            'title' => $this->faker->name(),
+            'date' => $this->faker->date(),
+            'bandId' => $bandId,
+            'setlistId' => $setlist->first()->id,
+            'locationId' => $locationId
         ];
     }
 }

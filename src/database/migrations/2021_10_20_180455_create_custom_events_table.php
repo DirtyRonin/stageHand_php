@@ -16,6 +16,7 @@ class CreateCustomEventsTable extends Migration
         Schema::create('customEvents', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('title')->default('combined text');
             $table->dateTime('date');
             $table->foreignId('bandId')->references('id')->on('bands');
             $table->foreignId('locationId')->references('id')->on('locations');

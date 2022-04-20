@@ -31,10 +31,10 @@ class Band extends Model
             ->withTimestamps();
     }
 
-    public function setlists()
-    {
-        return $this->hasMany(Setlist::class, 'bandId', 'id');
-    }
+    // public function setlists()
+    // {
+    //     return $this->hasMany(Setlist::class, 'bandId', 'id');
+    // }
 
     public function customEvents(){
         return $this->hasMany(CustomEvent::class, 'bandId', 'id');

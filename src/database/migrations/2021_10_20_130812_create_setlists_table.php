@@ -17,7 +17,6 @@ class CreateSetlistsTable extends Migration
             $table->id();
             $table->string('comment');
             $table->string('title');
-            $table->foreignId('bandId')->references('id')->on('bands');
             $table->timestamps();
         });
     }

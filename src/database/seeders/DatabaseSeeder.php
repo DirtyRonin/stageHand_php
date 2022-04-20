@@ -17,8 +17,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             SongSeeder::class,
             BandSeeder::class,
-            SetlistSeeder::class,
             LocationSeeder::class,
+            // SetlistSeeder::class,
             CustomEventSeeder::class,
         ]);
     }

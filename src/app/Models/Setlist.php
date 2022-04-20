@@ -25,11 +25,7 @@ class Setlist extends Model
             ->withPivot('order')
             ->withTimestamps();
     }
-
-    public function band(){
-        return $this->belongsTo(Band::class,'bandId','id');
-    }
-    public function customEvents(){
-        return $this->hasMany(CustomEvent::class, 'bandId', 'id');
+    public function customEvent(){
+        return $this->belongsTo(CustomEvent::class, 'customEventId');
     }
 }

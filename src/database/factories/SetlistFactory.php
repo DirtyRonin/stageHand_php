@@ -22,14 +22,10 @@ class SetlistFactory extends Factory
      */
     public function definition()
     {
-
-        $band = Band::where('title','Neptune Kings')->first();
         return [
             'title' => $this->faker->name(),
             'comment' => $this->faker->text(50),
-            'bandId' => $band->id
         ];
 
-        // $band = Band::where('title','Neptune Kings')->first();
     }
 }

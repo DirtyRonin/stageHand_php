@@ -90,8 +90,14 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::put('/setlistsongs/{setlistsongId}', [SetlistSongController::class, 'update']);
     Route::delete('/setlistsongs/{setlistsongId}/{songId}', [SetlistSongController::class, 'destroy']);
     Route::post('/setlistsongsAddSong', [SetlistSongController::class, 'addSongToSetlist']);
+    Route::get('/setlistsongsEditor/{customEventId}', [SetlistSongController::class, 'setlistEditor']);
     
     Route::get('/customevents', [CustomEventController::class, 'index']);
+    Route::post('/customevents', [CustomEventController::class, 'store']);
+    Route::get('/customevents/{id}', [CustomEventController::class, 'show']);
+    Route::get('/customeventsSearch/{search}', [CustomEventController::class, 'filter']);
+    Route::put('/customevents/{id}', [CustomEventController::class, 'update']);
+    Route::delete('/customevents/{id}', [CustomEventController::class, 'destroy']);
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/currentUser', [AuthController::class, 'currentUser']);
@@ -100,3 +106,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+
+Route::get('/customevents', [CustomEventController::class, 'index']);

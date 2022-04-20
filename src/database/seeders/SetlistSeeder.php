@@ -26,11 +26,11 @@ class SetlistSeeder extends Seeder
         //     ->create();
 
         
-
-        Setlist::factory()->count(5)->create()->each(function ($setlist) {
-            Song::factory()->count(10)->create()->each(function ($song, $key) use ($setlist) {
-            $setlist->songs()->attach($song->id, ['order' => $key]);
-            });
-        });
+//Now in customEvents
+        // Setlist::factory()->count(1)->create()->each(function ($setlist) {
+        //     Song::factory()->count(10)->create()->each(function ($song, $key) use ($setlist) {
+        //     $setlist->songs()->attach($song->id, ['order' => $key]);
+        //     });
+        // });
     }
 }
