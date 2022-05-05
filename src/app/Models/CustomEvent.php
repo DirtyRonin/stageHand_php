@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Models\Band;
 use App\Models\Setlist;
-use App\Models\SetlistSong;
 use App\Models\Location;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,7 +15,7 @@ class CustomEvent extends Model
     protected $table = 'customEvents';
 
     protected $fillable = [
-        'date',
+        'date','title','bandId','locationId',
     ];
 
     public function band(){

@@ -17,6 +17,12 @@ class CreateSetlistsTable extends Migration
             $table->id();
             $table->string('comment');
             $table->string('title');
+
+            $table->foreignId('customEventId')->references('id')->on('customEvents')
+            ->constrained()
+            ->onUpdate('cascade')
+            ->onDelete('cascade');
+
             $table->timestamps();
         });
     }

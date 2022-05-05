@@ -26,9 +26,9 @@ class UserSeeder extends Seeder
 
         $band = \App\Models\Band::create(['title' => "Neptune Kings"]);
 
-        for ($i=0; $i <50 ; $i++) { 
-            $band->songs()->attach(\App\Models\Song::factory()->create());
-        }
+        // for ($i=0; $i <50 ; $i++) { 
+        //     $band->songs()->attach(\App\Models\Song::factory()->create());
+        // }
 
         $user->bands()->attach($band);
         $user->bands()->attach(\App\Models\Band::create(['title' => "MotorHead"]));

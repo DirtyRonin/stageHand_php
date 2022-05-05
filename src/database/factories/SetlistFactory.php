@@ -25,7 +25,7 @@ class SetlistFactory extends Factory
         return [
             'title' => $this->faker->name(),
             'comment' => $this->faker->text(50),
+            'customEventId' => 1 // 'Neptune Kings'
         ];
-
     }
 }

@@ -20,7 +20,7 @@ class CreateCustomEventsTable extends Migration
             $table->dateTime('date');
             $table->foreignId('bandId')->references('id')->on('bands');
             $table->foreignId('locationId')->references('id')->on('locations');
-            $table->foreignId('setlistId')->references('id')->on('setlists');
+            // $table->foreignId('setlistId')->references('id')->on('setlists');
         });
     }
     /**

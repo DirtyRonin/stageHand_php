@@ -70,12 +70,11 @@ class SongController extends Controller
         return Song::destroy($id);
     }
 
+
+
     public function filter($search)
     {
-        return Song::where(DB::raw('Lower("artist")'), 'LIKE', '%' . strtolower($search) . '%')
-            ->orWhere(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
-            ->orderBy('artist')
-            ->orderBy('title')
+        return $this->getRequestQuery($search)
             ->paginate();
     }
 
@@ -89,15 +88,58 @@ class SongController extends Controller
             ->paginate();
     }
 
+
+
     public function filterSongsWithSetlistCount($setlistId, $search)
     {
-        return Song::where(DB::raw('Lower("artist")'), 'LIKE', '%' . strtolower($search) . '%')
-            ->orWhere(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
-            ->orderBy('artist')
-            ->orderBy('title')
+        return $this->getRequestQuery($search)
             ->withCount(['setlists' => function (Builder $query) use ($setlistId) {
                 $query->where('setlistId', $setlistId);
             }])
             ->paginate();
+    }
+
+    private function getRequestQuery($search)
+    {
+        $toLowerSearch = strtolower($search);
+
+        $terms = explode(" ", $toLowerSearch);
+
+        $regularTerms = array();
+        $specialTerms = array();
+
+        foreach ($terms as $term) {
+            if (strpos($term, '@') !== 0) {
+                $regularTerms[] = $term;
+            } else {
+                $specialTerms[] = $term;
+            }
+        };
+
+        $newRegularTerm = implode(' ', $regularTerms);
+        $newSpecialTerm = implode(' ', $specialTerms);
+
+        $isNineties = strpos($newSpecialTerm, '@ni');
+        $isEvergreen = strpos($newSpecialTerm, '@ev');
+
+        $query = Song::query();
+
+        if (strlen($newRegularTerm) > 2) {
+            $query->where(function ($query) use ($newRegularTerm) {
+                $query->where(DB::raw('Lower("artist")'), 'LIKE', '%' . strtolower($newRegularTerm) . '%')
+                    ->orWhere(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($newRegularTerm) . '%')
+                    ->orWhere(DB::raw('Lower("genre")'), 'LIKE', '%' . strtolower($newRegularTerm) . '%');
+            });
+        }
+
+        if (!is_bool($isNineties)) {
+            $query->where('nineties',  true);
+        }
+        if (!is_bool($isEvergreen)) {
+            $query->where('evergreen',  true);
+        }
+
+        return $query->orderBy('artist')
+            ->orderBy('title');
     }
 }

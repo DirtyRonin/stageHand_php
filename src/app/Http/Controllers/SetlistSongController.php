@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\CustomEvent;
 use App\Models\Song;
 use App\Models\Setlist;
+use App\Models\SetlistSong;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\Builder;
 
 class SetlistSongController extends Controller
 {
@@ -41,21 +41,54 @@ class SetlistSongController extends Controller
         return $setlist;
     }
 
-    public function switchOrder(Request $request, $setlistId)
+    public function swapOrder(Request $request)
     {
-        $setlist = Setlist::find($setlistId);
 
-        $setlist->songs()->detach([
-            $request->pivotA->songid,
-            $request->pivotB->songid,
+        // if (auth()->user()->id == 1){
+
+        $request->validate([
+            'id' => 'required',
+            'order' => 'required',
         ]);
 
-        $setlist->songs()->attach([
-            $request->pivotA->songid => ['order' => $request->pivotB->order],
-            $request->pivotB->songid => ['order' => $request->pivotA->order]
-        ]);
+        $x = SetlistSong::select('id', 'order', 'setlistId', 'songId')->where('id', $request->id)->first();
+        $y = SetlistSong::select('id', 'order', 'songId')->where([['order', '=', $request->order], ['setlistId', '=', $x->setlistId]])->first();
 
-        return [];
+        SetlistSong::where('id', $x->id)->update(['order' => $y->order]);
+        SetlistSong::where('id', $y->id)->update(['order' => $x->order]);
+
+        $setlist = Setlist::find($x->setlistId)
+            ->songs()
+            ->where('setlistSongs.id', '=', $x->id)
+            ->orWhere([['setlistSongs.id', '=', $y->id], ['setlistSongs.setlistId', '=', $x->setlistId]])
+            ->get()
+            ->all();
+
+        return $setlist;
+        // }
+
+
+
+        // $setlistSongs = SetlistSong::where('id',$x->id)
+        // // ->orWhere('id',$y->id)
+        // ->setlist()
+        // ->get()
+        // ->all();
+
+        // return [$x, $y];
+
+        // return $setlist = Setlist::find($x->setlistId)
+        // ->songs()
+        // ->where([['setlistSongs.id','=', $x->id]])
+        // ->orWhere([['setlistSongs.id','=', $y->id],['id','=', $x->setlistId]])
+        // ->get()
+        // ->all();
+
+
+        // $newX = SetlistSong::where('id', $x->id)->first();
+        // $newY = SetlistSong::where('id', $y->id)->first();
+
+        // return [$x, $y];
     }
 
     public function destroy($setlistId, $songId)
@@ -80,8 +113,8 @@ class SetlistSongController extends Controller
         return Setlist::find($setlistId)
             ->songs()
             ->where(DB::raw('Lower("artist")'), 'LIKE', '%' . strtolower($search) . '%')
-            ->orWhere(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
-            ->orWhere(DB::raw('Lower("genre")'), 'LIKE', '%' . strtolower($search) . '%')
+            ->orWhere([[DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%'], ['setlistSongs.setlistId', '=', $setlistId]])
+            ->orWhere([[DB::raw('Lower("genre")'), 'LIKE', '%' . strtolower($search) . '%'], ['setlistSongs.setlistId', '=', $setlistId]])
             ->orderBy('artist')
             ->orderBy('title')
             ->paginate();
@@ -89,8 +122,11 @@ class SetlistSongController extends Controller
 
     public function addSongToSetlist(Request $request)
     {
+        // check if song exists 
+        // avoid dublicates
+
         $setlistSongs = Setlist::find($request->setlistId);
-        $setlistSongs->songs()->attach([$request->songId => ['order' => count($setlistSongs->songs)]]);
+        $setlistSongs->songs()->attach([$request->songId => ['order' => count($setlistSongs->songs) + 1]]);
         return true;
     }
 
@@ -110,6 +146,9 @@ class SetlistSongController extends Controller
             ->where('date', '<=', $customEvent->date)
             ->where('bandId',  $customEvent->bandId)
             ->where('locationId', $customEvent->locationId)
+            ->with(['setlist' => function ($query) {
+                $query->select('id');
+            }])
             ->take(3)
             ->get()
             // ->pluck('id')
@@ -131,7 +170,7 @@ class SetlistSongController extends Controller
         // Rückgabe besteht nur noch aus Id und PivotFeld
         $songsQuery = Song::with([
             'setlists' => function ($query) use ($customEvents) {
-                $query->whereIn('setlistId', array_map(fn ($x) => $x->id,$customEvents) )->select('setlists.id');
+                $query->whereIn('setlistId', array_map(fn ($x) => $x->id, $customEvents))->select('setlists.id');
             }
         ]);
 
@@ -151,7 +190,7 @@ class SetlistSongController extends Controller
             $result[$newSong->id] = $newSong;
         }
 
-        return ["events" => array_reverse($customEvents),"songs"=>$result];
+        return ["events" => array_reverse($customEvents), "songs" => $result];
         // return ["events" => $reversed_prior_customEvents,"songs"=>$result];
     }
 }

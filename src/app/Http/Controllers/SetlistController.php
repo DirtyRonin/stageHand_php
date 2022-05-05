@@ -26,6 +26,7 @@ class SetlistController extends Controller
     {
         $request->validate([
             'title' => 'required',
+            'customEventId' => 'required'
         ]);
 
         return Setlist::create($request->all());

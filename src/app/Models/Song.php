@@ -16,20 +16,18 @@ class Song extends Model
     protected $table = 'songs';
 
     protected $fillable = [
-        'artist',
-        'title',
-        'genre'
+        'artist', 'title', 'genre', 'nineties','evergreen','originalKey','comment'
     ];
-    
+
     public function bands()
     {
-        return $this->belongsToMany(Band::class,'bandSongs','songId','bandId')
+        return $this->belongsToMany(Band::class, 'bandSongs', 'songId', 'bandId')
             ->withPivot('popularity')
             ->withTimestamps();
     }
     public function setlists()
     {
-        return $this->belongsToMany(Setlist::class,'setlistSongs','songId','setlistId')
+        return $this->belongsToMany(Setlist::class, 'setlistSongs', 'songId', 'setlistId')
             ->withTimestamps();
     }
 }

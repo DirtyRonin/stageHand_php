@@ -18,8 +18,6 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::get('/setlistsongs/{customEventId}', [SetlistSongController::class, 'setlistEditor']);
-
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 

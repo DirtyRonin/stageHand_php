@@ -59,12 +59,15 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::get('/bandsHaveSong/{songId}', [BandController::class, 'showBandsWithSongCount']);
     Route::get('/bandsHaveSongSearch/{songId}/{search}', [BandController::class, 'filterBandsWithSongCount']);
     
+
+    // store und destroy sind ausgeblendet, da jedes custom event eine playlist besitzt 
+    // 1:1 Verhältnis
     Route::get('/setlists', [SetlistController::class, 'index']);
-    Route::post('/setlists', [SetlistController::class, 'store']);
+    // Route::post('/setlists', [SetlistController::class, 'store']);
     Route::get('/setlists/{id}', [SetlistController::class, 'show']);
     Route::get('/setlistsSearch/{search}', [SetlistController::class, 'filter']);
     Route::put('/setlists/{id}', [SetlistController::class, 'update']);
-    Route::delete('/setlists/{id}', [SetlistController::class, 'destroy']);
+    // Route::delete('/setlists/{id}', [SetlistController::class, 'destroy']);
     Route::get('/setlistsHaveSong/{songId}', [SetlistController::class, 'showSetlistsWithSongCount']);
     Route::get('/setlistsHaveSongSearch/{songId}/{search}', [SetlistController::class, 'filterSetlistsWithSongCount']);
 
@@ -91,7 +94,10 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::delete('/setlistsongs/{setlistsongId}/{songId}', [SetlistSongController::class, 'destroy']);
     Route::post('/setlistsongsAddSong', [SetlistSongController::class, 'addSongToSetlist']);
     Route::get('/setlistsongsEditor/{customEventId}', [SetlistSongController::class, 'setlistEditor']);
-    
+    Route::put('/setlistsongsSwap', [SetlistSongController::class, 'swapOrder']);
+    Route::get('/setlistsongs/{customEventId}', [SetlistSongController::class, 'setlistEditor']);
+
+
     Route::get('/customevents', [CustomEventController::class, 'index']);
     Route::post('/customevents', [CustomEventController::class, 'store']);
     Route::get('/customevents/{id}', [CustomEventController::class, 'show']);
@@ -107,6 +113,3 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
-
-Route::get('/customevents', [CustomEventController::class, 'index']);

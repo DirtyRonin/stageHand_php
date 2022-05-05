@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Band;
+use App\Models\User;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -25,11 +26,21 @@ class BandController extends Controller
      */
     public function store(Request $request)
     {
+        if (auth()->user()->id == 1) // id 1 ist admin
+        {
 
-        $request->validate([
-            'title' => 'required',
-        ]);
-        return Band::create($request->all());
+            $request->validate([
+                'title' => 'required',
+            ]);
+
+            $newBand = Band::create($request->all());
+
+            User::findOrFail(1)->bands()->attach($newBand->id);
+
+            return $newBand;
+        }
+
+        return new AuthenticationException('You Are No Admin');
     }
 
     /**

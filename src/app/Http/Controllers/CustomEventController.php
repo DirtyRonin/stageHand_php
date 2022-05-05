@@ -3,17 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\CustomEvent;
+use App\Models\Band;
+use App\Models\Setlist;
 use Illuminate\Http\Request;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Support\Facades\DB;
 
 class CustomEventController extends Controller
 {
     public function index()
     {
-        return CustomEvent::orderBy('date')
+        return CustomEvent::whereIn('bandId', (Band::whereRelation('users', 'userId', auth()->user()->id)->select('id')))
             ->with('location')
             ->with('band')
             ->with('setlist')
+            ->orderBy('date')
             ->paginate();
     }
 
@@ -28,8 +32,30 @@ class CustomEventController extends Controller
 
         $request->validate([
             'date' => 'required',
+            'bandId' => 'required',
+            'locationId' => 'required'
         ]);
-        return CustomEvent::create($request->all());
+
+
+        $newCustomEvent = CustomEvent::create($request->all());
+
+        $customEvent =  CustomEvent::with('location')
+            ->with('band')
+            ->with('setlist')
+            ->findOrFail($newCustomEvent->id);
+
+        $customEventDate = date('Y.M.d', strtotime($customEvent->date));
+
+        Setlist::create([
+            'customEventId' => $newCustomEvent->id,
+            'title' => $customEvent->title . ' :: ' . $customEvent->band->title . ' :: ' . $customEvent->location->name . ' :: ' . $customEventDate,
+            'comment' => ''
+        ]);
+
+        $customEvent->refresh();
+
+
+        return $customEvent;
     }
 
     /**
@@ -40,13 +66,13 @@ class CustomEventController extends Controller
      */
     public function show($id)
     {
-        return CustomEvent::findOrFail($id);
+        $customEvent =  CustomEvent::findOrFail($id);
 
-        // if (auth()->user()->customEvents()->where('customEventId', $id)->exists()) {
-        //     return CustomEvent::findOrFail($id);
-        // }
+        if ($customEvent->exists() && auth()->user()->bands()->where('bandId', $customEvent->bandId)->exists()) {
+            return $customEvent;
+        }
 
-        // return new AuthenticationException('Not your CustomEvent');
+        return new AuthenticationException('Not your CustomEvent');
     }
 
     /**
@@ -58,9 +84,23 @@ class CustomEventController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (auth()->user()->customEvents()->where('customEventId', $id)->exists()) {
-            $customEvent = CustomEvent::findOrFail($id);
+        $customEvent =  CustomEvent::with('location')
+            ->with('band')
+            ->with('setlist')
+            ->findOrFail($id);
+
+
+        if ($customEvent->exists() && auth()->user()->bands()->where('bandId', $customEvent->bandId)->exists()) {
             $customEvent->update($request->all());
+
+            $customEvent->refresh();
+
+            $customEventDate = date('Y.M.d', strtotime($customEvent->date));
+
+            $customEvent->setlist()->update([
+                'title' => $customEvent->title . ' :: ' . $customEvent->band->title . ' :: ' . $customEvent->location->name . ' :: ' . $customEventDate,
+            ]);
+
             return $customEvent;
         }
 
@@ -75,9 +115,12 @@ class CustomEventController extends Controller
      */
     public function destroy($id)
     {
-        if (auth()->user()->customEvents()->where('customEventId', $id)->exists()) {
+        $customEvent =  CustomEvent::findOrFail($id);
+
+        if ($customEvent->exists() && auth()->user()->bands()->where('bandId', $customEvent->bandId)->exists()) {
             //soft delete
-            return CustomEvent::destroy($id);
+            CustomEvent::destroy($id);
+            return $id;
         }
 
         return new AuthenticationException('Not your CustomEvent');
@@ -85,11 +128,12 @@ class CustomEventController extends Controller
 
     public function filter($search)
     {
-        return
-            CustomEvent::whereRelation('users', 'userId', auth()->user()->id)
+        return CustomEvent::whereIn('bandId', (Band::whereRelation('users', 'userId', auth()->user()->id)->select('id')))
             ->where(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
-            ->orderBy('title')
-            ->with('users')
+            ->with('location')
+            ->with('band')
+            ->with('setlist')
+            ->orderBy('date')
             ->paginate();
     }
 }

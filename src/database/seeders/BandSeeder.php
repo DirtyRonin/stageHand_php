@@ -19,7 +19,7 @@ class BandSeeder extends Seeder
         Band::factory()
         ->count(10)
         ->has(User::factory()->count(3))
-        ->has(Song::factory()->count(3))
+        // ->has(Song::factory()->count(3))
         ->create();
     }
 }
