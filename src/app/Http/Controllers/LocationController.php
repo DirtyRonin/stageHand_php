@@ -71,8 +71,8 @@ class LocationController extends Controller
     public function filter($search)
     {
         return
-            Location::where(DB::raw('Lower("name")'), 'LIKE', '%' . strtolower($search) . '%')
-            ->orWhere(DB::raw('Lower("address")'), 'LIKE', '%' . strtolower($search) . '%')
+            Location::where("name", 'LIKE', '%' . strtolower($search) . '%')
+            ->orWhere("address", 'LIKE', '%' . strtolower($search) . '%')
             ->orderBy('name')
             ->paginate();
     }

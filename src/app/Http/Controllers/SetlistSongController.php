@@ -112,9 +112,9 @@ class SetlistSongController extends Controller
     {
         return Setlist::find($setlistId)
             ->songs()
-            ->where(DB::raw('Lower("artist")'), 'LIKE', '%' . strtolower($search) . '%')
-            ->orWhere([[DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%'], ['setlistSongs.setlistId', '=', $setlistId]])
-            ->orWhere([[DB::raw('Lower("genre")'), 'LIKE', '%' . strtolower($search) . '%'], ['setlistSongs.setlistId', '=', $setlistId]])
+            ->where("artist", 'LIKE', '%' . strtolower($search) . '%')
+            ->orWhere([["title", 'LIKE', '%' . strtolower($search) . '%'], ['setlistSongs.setlistId', '=', $setlistId]])
+            ->orWhere([["genre", 'LIKE', '%' . strtolower($search) . '%'], ['setlistSongs.setlistId', '=', $setlistId]])
             ->orderBy('artist')
             ->orderBy('title')
             ->paginate();

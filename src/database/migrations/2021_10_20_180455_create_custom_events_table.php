@@ -17,7 +17,7 @@ class CreateCustomEventsTable extends Migration
             $table->id();
             $table->timestamps();
             $table->string('title')->default('combined text');
-            $table->dateTime('date');
+            $table->timestamp('date')->nullable();
             $table->foreignId('bandId')->references('id')->on('bands');
             $table->foreignId('locationId')->references('id')->on('locations');
             // $table->foreignId('setlistId')->references('id')->on('setlists');

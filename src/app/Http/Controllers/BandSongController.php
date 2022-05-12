@@ -69,9 +69,9 @@ class BandSongController extends Controller
         if (auth()->user()->bands()->where('bandId', $bandId)->exists()) {
             return Band::find($bandId)
                 ->songs()
-                ->where(DB::raw('Lower("artist")'), 'LIKE', '%' . strtolower($search) . '%')
-                ->orWhere(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
-                ->orWhere(DB::raw('Lower("genre")'), 'LIKE', '%' . strtolower($search) . '%')
+                ->where("artist", 'LIKE', '%' . strtolower($search) . '%')
+                ->orWhere("title", 'LIKE', '%' . strtolower($search) . '%')
+                ->orWhere("genre", 'LIKE', '%' . strtolower($search) . '%')
                 ->orderBy('artist')
                 ->orderBy('title')
                 ->paginate();

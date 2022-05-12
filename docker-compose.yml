@@ -1,16 +1,19 @@
 version: "3.8"
 services:
   database:
-    image: postgres
+    image: mariadb
     container_name: database
     restart: unless-stopped
     environment:
-      POSTGRES_PASSWORD: secret
-      POSTGRES_DB: laravel_docker
+      MYSQL_ROOT_PASSWORD: "${DB_ROOT_PASSWORD}"
+      MYSQL_ROOT_HOST : "${DB_HOST}"
+      MYSQL_USER: "${DB_USERNAME}"
+      MYSQL_PASSWORD: "${DB_PASSWORD}"
+      MYSQL_DATABASE: "${DB_DATABASE}"
     volumes:
-      - ~/stageHand_php/postgres-data:/var/lib/postgresql/data
+      - ~/stageHand_php/mysql:/var/lib/mariadb/data
     ports:
-      - '5432:5432'
+      - '${DB_PORT}:${DB_PORT}'
   php-apache:
     container_name: php-apache
     build:

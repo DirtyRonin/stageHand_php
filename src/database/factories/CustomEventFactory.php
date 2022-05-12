@@ -29,7 +29,7 @@ class CustomEventFactory extends Factory
 
         return [
             'title' => $this->faker->name(),
-            'date' => $this->faker->date(),
+            'date' => $this->faker->dateTimeBetween("-30 year", now()),
             'bandId' => $bandId,
             'locationId' => $locationId
         ];

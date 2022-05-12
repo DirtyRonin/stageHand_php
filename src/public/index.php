@@ -16,8 +16,11 @@ define('LARAVEL_START', microtime(true));
 |
 */
 
-if (file_exists(__DIR__.'/../storage/framework/maintenance.php')) {
-    require __DIR__.'/../storage/framework/maintenance.php';
+if (file_exists(__DIR__ . '/../storage/framework/maintenance.php')) {
+    require __DIR__ . '/../storage/framework/maintenance.php';
+}
+if (file_exists(__DIR__ . '/stageHand_php/src/storage/framework/maintenance.php')) {
+    require __DIR__ . '/stageHand_php/src/storage/framework/maintenance.php';
 }
 
 /*
@@ -30,8 +33,12 @@ if (file_exists(__DIR__.'/../storage/framework/maintenance.php')) {
 | into the script here so we don't need to manually load our classes.
 |
 */
+if (file_exists(__DIR__ . '/../vendor/autoload.php'))
+    require __DIR__ . '/../vendor/autoload.php';
 
-require __DIR__.'/../vendor/autoload.php';
+if (file_exists(__DIR__ . '/stageHand_php/src/vendor/autoload.php'))
+    require __DIR__ . '/stageHand_php/src/vendor/autoload.php';
+
 
 /*
 |--------------------------------------------------------------------------
@@ -43,8 +50,13 @@ require __DIR__.'/../vendor/autoload.php';
 | to this client's browser, allowing them to enjoy our application.
 |
 */
+if (file_exists(__DIR__ . '/../bootstrap/app.php'))
+    $app = require_once __DIR__ . '/../bootstrap/app.php';
 
-$app = require_once __DIR__.'/../bootstrap/app.php';
+if (file_exists(__DIR__ . '/stageHand_php/src/bootstrap/app.php'))
+    $app = require_once __DIR__ . '/stageHand_php/src/bootstrap/app.php';
+
+
 
 $kernel = $app->make(Kernel::class);
 

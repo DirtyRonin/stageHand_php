@@ -7,7 +7,8 @@ use App\Models\Band;
 use App\Models\Setlist;
 use Illuminate\Http\Request;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Support\Facades\DB;
+use Datetime;
+use Illuminate\Support\Carbon;
 
 class CustomEventController extends Controller
 {
@@ -37,7 +38,11 @@ class CustomEventController extends Controller
         ]);
 
 
-        $newCustomEvent = CustomEvent::create($request->all());
+        $carbonA = Carbon::parse($request->date)->format('Y-m-d H:i:s');
+        $all = $request->all();
+        $all['date'] = $carbonA;
+
+        $newCustomEvent = CustomEvent::create($all);
 
         $customEvent =  CustomEvent::with('location')
             ->with('band')
@@ -91,8 +96,12 @@ class CustomEventController extends Controller
 
 
         if ($customEvent->exists() && auth()->user()->bands()->where('bandId', $customEvent->bandId)->exists()) {
-            $customEvent->update($request->all());
 
+            $carbonA = Carbon::parse($request->date)->format('Y-m-d H:i:s');
+            $all = $request->all();
+
+            $all['date'] = $carbonA;
+            $customEvent->update($all);
             $customEvent->refresh();
 
             $customEventDate = date('Y.M.d', strtotime($customEvent->date));
@@ -129,7 +138,7 @@ class CustomEventController extends Controller
     public function filter($search)
     {
         return CustomEvent::whereIn('bandId', (Band::whereRelation('users', 'userId', auth()->user()->id)->select('id')))
-            ->where(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
+            ->where("title", 'LIKE', '%' . strtolower($search) . '%')
             ->with('location')
             ->with('band')
             ->with('setlist')

@@ -1,11 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\SetlistSongController;
 use Illuminate\Support\Facades\Route;
-use App\Models\Band;
-use App\Models\User;
-use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,7 +17,13 @@ use Illuminate\Http\Request;
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/', function () {
-    return view('welcome');
-});
-
+if (env('APP_ENV') == 'local') {
+    Route::get('/', function () {
+        return view('welcome');
+    });
+}
+if (env('APP_ENV') == 'production') {
+    Route::get('/', function () {
+        return view('welcomeProd');
+    });
+}

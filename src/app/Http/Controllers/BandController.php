@@ -96,7 +96,7 @@ class BandController extends Controller
     {
         return
             Band::whereRelation('users', 'userId', auth()->user()->id)
-            ->where(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
+            ->where("title", 'LIKE', '%' . strtolower($search) . '%')
             ->orderBy('title')
             ->with('users')
             ->paginate();
@@ -115,7 +115,7 @@ class BandController extends Controller
     public function filterBandsWithSongCount($songId, $search)
     {
         return Band::whereRelation('users', 'userId', auth()->user()->id)
-            ->where(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
+            ->where("title", 'LIKE', '%' . strtolower($search) . '%')
             ->orderBy('title')
             ->withCount(['songs' => function (Builder $query) use ($songId) {
                 $query->where('songId', $songId);

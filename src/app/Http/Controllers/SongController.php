@@ -126,17 +126,17 @@ class SongController extends Controller
 
         if (strlen($newRegularTerm) > 2) {
             $query->where(function ($query) use ($newRegularTerm) {
-                $query->where(DB::raw('Lower("artist")'), 'LIKE', '%' . strtolower($newRegularTerm) . '%')
-                    ->orWhere(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($newRegularTerm) . '%')
-                    ->orWhere(DB::raw('Lower("genre")'), 'LIKE', '%' . strtolower($newRegularTerm) . '%');
+                $query->where("artist", 'LIKE', '%' . strtolower($newRegularTerm) . '%')
+                    ->orWhere("title", 'LIKE', '%' . strtolower($newRegularTerm) . '%')
+                    ->orWhere("genre", 'LIKE', '%' . strtolower($newRegularTerm) . '%');
             });
         }
 
         if (!is_bool($isNineties)) {
-            $query->where('nineties',  true);
+            $query->where('nineties',  1);
         }
         if (!is_bool($isEvergreen)) {
-            $query->where('evergreen',  true);
+            $query->where('evergreen',  1);
         }
 
         return $query->orderBy('artist')

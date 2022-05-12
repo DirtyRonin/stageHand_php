@@ -70,7 +70,7 @@ class SetlistController extends Controller
 
     public function filter($search)
     {
-        return Setlist::where(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
+        return Setlist::where("title", 'LIKE', '%' . strtolower($search) . '%')
             ->orderBy('title')
             ->paginate();
     }
@@ -86,7 +86,7 @@ class SetlistController extends Controller
 
     public function filterSetlistsWithSongCount($songId, $search)
     {
-        return Setlist::where(DB::raw('Lower("title")'), 'LIKE', '%' . strtolower($search) . '%')
+        return Setlist::where("title", 'LIKE', '%' . strtolower($search) . '%')
             ->orderBy('title')
             ->withCount(['songs' => function (Builder $query) use ($songId) {
                 $query->where('songId', $songId);
