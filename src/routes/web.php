@@ -19,11 +19,13 @@ Route::post('/login', [AuthController::class, 'login']);
 
 if (env('APP_ENV') == 'local') {
     Route::get('/', function () {
-        return view('welcome');
+        $packageNumber = env('JS_PACKAGE_NUMBER');
+        return view('welcome',compact('packageNumber'));
     });
 }
 if (env('APP_ENV') == 'production') {
     Route::get('/', function () {
-        return view('welcomeProd');
+        $packageNumber = env('JS_PACKAGE_NUMBER');
+        return view('welcomeProd',compact('packageNumber'));
     });
 }
