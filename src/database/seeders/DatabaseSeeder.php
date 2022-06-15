@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             UserSeeder::class,
             // SongSeeder::class,
-            BandSeeder::class,
+            // BandSeeder::class,
             LocationSeeder::class,
             // SetlistSeeder::class,
             CustomEventSeeder::class,

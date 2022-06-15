@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\Band;
 use Illuminate\Database\Seeder;
 
 class UserSeeder extends Seeder
@@ -17,26 +16,23 @@ class UserSeeder extends Seeder
     {
         $user = User::create([
             'name' => "admin",
-            'email' => "admin@admin.de",
-            'password' => bcrypt("admin")
+            'email' => "mein@penis.de",
+            'password' => bcrypt("WnH_Wk<PUS.a!Hn0"),
+            'isAdmin' => 1
+        ]);
+        $visitor = User::create([
+            'name' => "visitor",
+            'email' => "visitor@visitor.de",
+            'password' => bcrypt("visitor"),
+            'isAdmin' => 0
         ]);
 
-
-        
-
-        $band = \App\Models\Band::create(['title' => "Neptune Kings"]);
-
-        // for ($i=0; $i <50 ; $i++) { 
-        //     $band->songs()->attach(\App\Models\Song::factory()->create());
-        // }
-
-        $user->bands()->attach($band);
+        $user->bands()->attach(\App\Models\Band::create(['title' => "Neptune Kings"]));
         $user->bands()->attach(\App\Models\Band::create(['title' => "MotorHead"]));
         $user->bands()->attach(\App\Models\Band::create(['title' => "Major Lazor"]));
-
-        User::factory()
-        ->count(10)
-        ->has(Band::factory()->count(1))
-        ->create();
+        
+        $visitor->bands()->attach(\App\Models\Band::create(['title' => "My Top 40 Band"]));
+        $visitor->bands()->attach(\App\Models\Band::create(['title' => "Garage Band"]));
+        $visitor->bands()->attach(\App\Models\Band::create(['title' => "Theater Group"]));
     }
 }

@@ -25,6 +25,9 @@ class SongController extends Controller
     public function store(Request $request)
     {
 
+        if (auth()->user()->isAdmin == 0)
+            return response()->json(['message' => 'No Authorization'], 403);
+
         $request->validate([
             'artist' => 'required',
             'title' => 'required',
@@ -54,6 +57,9 @@ class SongController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (auth()->user()->isAdmin == 0)
+            return response()->json(['message' => 'No Authorization'], 403);
+
         $song = Song::find($id);
         $song->update($request->all());
         return $song;
@@ -67,6 +73,9 @@ class SongController extends Controller
      */
     public function destroy($id)
     {
+        if (auth()->user()->isAdmin == 0)
+            return response()->json(['message' => 'No Authorization'], 403);
+
         return Song::destroy($id);
     }
 

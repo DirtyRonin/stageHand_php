@@ -6,14 +6,19 @@ use App\Models\CustomEvent;
 use App\Models\Song;
 use App\Models\Setlist;
 use App\Models\SetlistSong;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class SetlistSongController extends Controller
 {
     public function index($setlistId)
     {
-        return Setlist::find($setlistId)
+
+        $setlist = Setlist::find($setlistId);
+
+        if (!$this->isAuthorizedSetlist($setlist))
+            return $this->ThrowNoAuthorizationResponse();
+
+        return $setlist
             ->songs()
             ->orderBy('order')
             ->paginate();
@@ -26,7 +31,12 @@ class SetlistSongController extends Controller
 
     public function show($setlistId, $songId)
     {
-        return Setlist::find($setlistId)
+        $setlist = Setlist::find($setlistId);
+
+        if (!$this->isAuthorizedSetlist($setlist))
+            return $this->ThrowNoAuthorizationResponse();
+
+        return $setlist
             ->songs()
             ->where('songId', $songId)
             ->first();
@@ -35,6 +45,9 @@ class SetlistSongController extends Controller
     public function update(Request $request, $setlistId)
     {
         $setlist = Setlist::find($setlistId);
+
+        if (!$this->isAuthorizedSetlist($setlist))
+            return $this->ThrowNoAuthorizationResponse();
 
         $setlist->songs()->updateExistingPivot($request->songId);
 
@@ -52,48 +65,34 @@ class SetlistSongController extends Controller
         ]);
 
         $x = SetlistSong::select('id', 'order', 'setlistId', 'songId')->where('id', $request->id)->first();
+
+        $setlist = Setlist::find($x->setlistId);
+
+        if (!$this->isAuthorizedSetlist($setlist))
+            return $this->ThrowNoAuthorizationResponse();
+
+
         $y = SetlistSong::select('id', 'order', 'songId')->where([['order', '=', $request->order], ['setlistId', '=', $x->setlistId]])->first();
 
         SetlistSong::where('id', $x->id)->update(['order' => $y->order]);
         SetlistSong::where('id', $y->id)->update(['order' => $x->order]);
 
-        $setlist = Setlist::find($x->setlistId)
+        return $setlist->find($x->setlistId)
             ->songs()
             ->where('setlistSongs.id', '=', $x->id)
             ->orWhere([['setlistSongs.id', '=', $y->id], ['setlistSongs.setlistId', '=', $x->setlistId]])
             ->get()
             ->all();
-
-        return $setlist;
-        // }
-
-
-
-        // $setlistSongs = SetlistSong::where('id',$x->id)
-        // // ->orWhere('id',$y->id)
-        // ->setlist()
-        // ->get()
-        // ->all();
-
-        // return [$x, $y];
-
-        // return $setlist = Setlist::find($x->setlistId)
-        // ->songs()
-        // ->where([['setlistSongs.id','=', $x->id]])
-        // ->orWhere([['setlistSongs.id','=', $y->id],['id','=', $x->setlistId]])
-        // ->get()
-        // ->all();
-
-
-        // $newX = SetlistSong::where('id', $x->id)->first();
-        // $newY = SetlistSong::where('id', $y->id)->first();
-
-        // return [$x, $y];
     }
+
 
     public function destroy($setlistId, $songId)
     {
         $setlist  = Setlist::find($setlistId);
+
+        if (!$this->isAuthorizedSetlist($setlist))
+            return $this->ThrowNoAuthorizationResponse();
+
         $removeItem = $setlist->songs()->where('songId', $songId)->first();
 
         $setlist->songs()->detach($songId);
@@ -110,7 +109,13 @@ class SetlistSongController extends Controller
 
     public function filter($setlistId, $search)
     {
-        return Setlist::find($setlistId)
+
+        $setlist  = Setlist::find($setlistId);
+
+        if (!$this->isAuthorizedSetlist($setlist))
+            return $this->ThrowNoAuthorizationResponse();
+
+        return $setlist->find($setlistId)
             ->songs()
             ->where("artist", 'LIKE', '%' . strtolower($search) . '%')
             ->orWhere([["title", 'LIKE', '%' . strtolower($search) . '%'], ['setlistSongs.setlistId', '=', $setlistId]])
@@ -124,17 +129,31 @@ class SetlistSongController extends Controller
     {
         // check if song exists 
         // avoid dublicates
+        $request->validate([
+            'setlistId' => 'required',
+            'songId' => 'required',
+        ]);
 
-        $setlistSongs = Setlist::find($request->setlistId);
-        $setlistSongs->songs()->attach([$request->songId => ['order' => count($setlistSongs->songs) + 1]]);
+        $setlist  = Setlist::find($request->setlistId);
+
+        if (!$this->isAuthorizedSetlist($setlist))
+            return $this->ThrowNoAuthorizationResponse();
+
+        if ($setlist->songs()->where('songId', $request->songId)->exists())
+            return  response()->json(['message' => 'Song already exists'], 500);
+
+        $setlist->songs()->attach([$request->songId => ['order' => count($setlist->songs) + 1]]);
         return true;
     }
 
     public function setlistEditor($customEventId)
     {
         $customEvent = CustomEvent::find($customEventId);
-        $result = array();
 
+        if (!$this->isAuthorizedCustomEvent($customEvent->bandId))
+            return $this->ThrowNoAuthorizationResponse();
+
+        $result = array();
         // die id's des events und der zwei vorigen
         // die events sollen von der selben band und in der selben location sein
         // 
@@ -192,5 +211,21 @@ class SetlistSongController extends Controller
 
         return ["events" => array_reverse($customEvents), "songs" => $result];
         // return ["events" => $reversed_prior_customEvents,"songs"=>$result];
+    }
+
+    private function isAuthorizedSetlist($setlist)
+    {
+        $bandId = $setlist->customEvent()->select('bandId')->first()->bandId;
+        return $this->isAuthorizedCustomEvent($bandId);
+    }
+
+    private function isAuthorizedCustomEvent($bandId)
+    {
+        return auth()->user()->bands()->where('bands.id', $bandId)->exists();
+    }
+
+    private function ThrowNoAuthorizationResponse()
+    {
+        return  response()->json(['message' => 'No Authorization'], 403);
     }
 }

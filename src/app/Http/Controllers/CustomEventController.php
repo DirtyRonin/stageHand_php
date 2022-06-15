@@ -7,7 +7,6 @@ use App\Models\Band;
 use App\Models\Setlist;
 use Illuminate\Http\Request;
 use Illuminate\Auth\AuthenticationException;
-use Datetime;
 use Illuminate\Support\Carbon;
 
 class CustomEventController extends Controller
@@ -18,7 +17,7 @@ class CustomEventController extends Controller
             ->with('location')
             ->with('band')
             ->with('setlist')
-            ->orderBy('date')
+            ->orderBy('date','DESC')
             ->paginate();
     }
 
@@ -49,11 +48,9 @@ class CustomEventController extends Controller
             ->with('setlist')
             ->findOrFail($newCustomEvent->id);
 
-        $customEventDate = date('Y.M.d', strtotime($customEvent->date));
-
         Setlist::create([
             'customEventId' => $newCustomEvent->id,
-            'title' => $customEvent->title . ' :: ' . $customEvent->band->title . ' :: ' . $customEvent->location->name . ' :: ' . $customEventDate,
+            'title' => $this->generateSelistName($customEvent),
             'comment' => ''
         ]);
 
@@ -62,6 +59,8 @@ class CustomEventController extends Controller
 
         return $customEvent;
     }
+
+
 
     /**
      * Display the specified resource.
@@ -73,11 +72,13 @@ class CustomEventController extends Controller
     {
         $customEvent =  CustomEvent::findOrFail($id);
 
-        if ($customEvent->exists() && auth()->user()->bands()->where('bandId', $customEvent->bandId)->exists()) {
-            return $customEvent;
-        }
+        if (!$customEvent->exists())
+            return response()->json(['message' => 'Concert do not exist'], 500);
 
-        return new AuthenticationException('Not your CustomEvent');
+        if (!$this->isAuthorized($customEvent))
+            $this->ThrowNoAuthorizationResponse();
+
+        return $customEvent;
     }
 
     /**
@@ -89,31 +90,30 @@ class CustomEventController extends Controller
      */
     public function update(Request $request, $id)
     {
+
         $customEvent =  CustomEvent::with('location')
             ->with('band')
             ->with('setlist')
             ->findOrFail($id);
 
+        if (!$customEvent->exists())
+            return response()->json(['message' => 'Concert do not exist'], 500);
 
-        if ($customEvent->exists() && auth()->user()->bands()->where('bandId', $customEvent->bandId)->exists()) {
+        if (!$this->isAuthorized($customEvent))
+            $this->ThrowNoAuthorizationResponse();
 
-            $carbonA = Carbon::parse($request->date)->format('Y-m-d H:i:s');
-            $all = $request->all();
+        $carbonA = Carbon::parse($request->date)->format('Y-m-d H:i:s');
+        $all = $request->all();
 
-            $all['date'] = $carbonA;
-            $customEvent->update($all);
-            $customEvent->refresh();
+        $all['date'] = $carbonA;
+        $customEvent->update($all);
+        $customEvent->refresh();
 
-            $customEventDate = date('Y.M.d', strtotime($customEvent->date));
+        $customEvent->setlist()->update([
+            'title' => $this->generateSelistName($customEvent)
+        ]);
 
-            $customEvent->setlist()->update([
-                'title' => $customEvent->title . ' :: ' . $customEvent->band->title . ' :: ' . $customEvent->location->name . ' :: ' . $customEventDate,
-            ]);
-
-            return $customEvent;
-        }
-
-        return new AuthenticationException('Not your CustomEvent');
+        return $customEvent;
     }
 
     /**
@@ -126,23 +126,41 @@ class CustomEventController extends Controller
     {
         $customEvent =  CustomEvent::findOrFail($id);
 
-        if ($customEvent->exists() && auth()->user()->bands()->where('bandId', $customEvent->bandId)->exists()) {
-            //soft delete
-            CustomEvent::destroy($id);
-            return $id;
-        }
+        if (!$customEvent->exists())
+            return response()->json(['message' => 'Concert do not exist'], 500);
 
-        return new AuthenticationException('Not your CustomEvent');
+        if (!$this->isAuthorized($customEvent))
+            $this->ThrowNoAuthorizationResponse();
+
+        //soft delete
+        CustomEvent::destroy($id);
+        return $id;
     }
 
     public function filter($search)
     {
         return CustomEvent::whereIn('bandId', (Band::whereRelation('users', 'userId', auth()->user()->id)->select('id')))
-            ->where("title", 'LIKE', '%' . strtolower($search) . '%')
+            ->whereRelation("setlist", 'title', 'LIKE', '%' . strtolower($search) . '%')
             ->with('location')
             ->with('band')
             ->with('setlist')
-            ->orderBy('date')
+            ->orderBy('date','DESC')
             ->paginate();
+    }
+
+    private function isAuthorized($customEvent)
+    {
+        return auth()->user()->bands()->where('bandId', $customEvent->bandId)->exists();
+    }
+
+    private function ThrowNoAuthorizationResponse()
+    {
+        return  response()->json(['message' => 'Not Your Concert'], 403);
+    }
+
+    private function generateSelistName($customEvent)
+    {
+        $customEventDate = date('Y.M.d', strtotime($customEvent->date));
+        return $customEvent->title . ' :: ' . $customEvent->band->title . ' :: ' . $customEvent->location->name . ' :: ' . $customEventDate;
     }
 }

@@ -9,43 +9,42 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $fields = $request->validate([
-            'name' => 'required|string|unique',
-            'email' => 'required|string|unique:users,email',
-            'password' => 'required|string|confirmed'
-        ]);
+    // public function register(Request $request)
+    // {
+    //     $fields = $request->validate([
+    //         'name' => 'required|string|unique',
+    //         'email' => 'required|string|unique:users,email',
+    //         'password' => 'required|string|confirmed'
+    //     ]);
 
-        $user = User::create([
-            'name' => $fields['name'],
-            'email' => $fields['email'],
-            'password' => bcrypt($fields['password'])
-        ]);
+    //     $user = User::create([
+    //         'name' => $fields['name'],
+    //         'email' => $fields['email'],
+    //         'password' => bcrypt($fields['password']),
+    //         'isAdmin' => 0
+    //     ]);
 
 
-        $response = [
-            'user' => $user
-        ];
+    //     $response = [
+    //         'user' => $user
+    //     ];
 
-        return response($response, 201);
-    }
+    //     return response($response, 201);
+    // }
 
     public function login(Request $request)
     {
-        $fields = $request->validate([
+        $request->validate([
             'email' => 'required|string',
             'password' => 'required|string'
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $request->session()->regenerate();
+        if (!Auth::attempt($request->only('email', 'password')))
+            return response()->json(['message' => 'Authentication Failed'], 500);
 
-            return response()->json(['message' => 'Logged in'], 201);
-        }
+        $request->session()->regenerate();
+        return response()->json(['message' => 'Logged in', 'name' => auth()->user()->name, 'isAdmin' => auth()->user()->isAdmin], 201);
 
-        return response()->json(['error' => 'Invalid credentials']);
-           
 
 
         // // // // // // bearer auth // // // // //
@@ -79,11 +78,12 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        auth("web")->logout();
+        // Auth::logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        
-        return response()->json(['message'=>'logged out',204]);
+
+        return response()->json(['message' => 'logged out', 204]);
     }
 }

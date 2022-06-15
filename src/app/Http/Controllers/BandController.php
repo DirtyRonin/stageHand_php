@@ -26,21 +26,15 @@ class BandController extends Controller
      */
     public function store(Request $request)
     {
-        if (auth()->user()->id == 1) // id 1 ist admin
-        {
+        $request->validate([
+            'title' => 'required',
+        ]);
 
-            $request->validate([
-                'title' => 'required',
-            ]);
+        $newBand = Band::create($request->all());
 
-            $newBand = Band::create($request->all());
+        auth()->user()->bands()->attach($newBand->id);
 
-            User::findOrFail(1)->bands()->attach($newBand->id);
-
-            return $newBand;
-        }
-
-        return new AuthenticationException('You Are No Admin');
+        return $newBand;
     }
 
     /**
@@ -51,11 +45,10 @@ class BandController extends Controller
      */
     public function show($id)
     {
-        if (auth()->user()->bands()->where('bandId', $id)->exists()) {
-            return Band::findOrFail($id);
-        }
+        if (!$this->isAuthorized($id))
+            $this->ThrowNoAuthorizationResponse();
 
-        return new AuthenticationException('Not your Band');
+        return Band::findOrFail($id);
     }
 
     /**
@@ -67,13 +60,12 @@ class BandController extends Controller
      */
     public function update(Request $request, $id)
     {
-        if (auth()->user()->bands()->where('bandId', $id)->exists()) {
-            $band = Band::findOrFail($id);
-            $band->update($request->all());
-            return $band;
-        }
+        if (!$this->isAuthorized($id))
+            $this->ThrowNoAuthorizationResponse();
 
-        return new AuthenticationException('Not your Band');
+        $band = Band::findOrFail($id);
+        $band->update($request->all());
+        return $band;
     }
 
     /**
@@ -84,12 +76,12 @@ class BandController extends Controller
      */
     public function destroy($id)
     {
-        if (auth()->user()->bands()->where('bandId', $id)->exists()) {
-            //soft delete
-            return Band::destroy($id);
-        }
+        if (!$this->isAuthorized($id))
+            $this->ThrowNoAuthorizationResponse();
 
-        return new AuthenticationException('Not your Band');
+        auth()->user()->bands()->detach($id);
+        //soft delete
+        return Band::destroy($id);
     }
 
     public function filter($search)
@@ -121,5 +113,14 @@ class BandController extends Controller
                 $query->where('songId', $songId);
             }])
             ->paginate();
+    }
+    private function isAuthorized($bandId)
+    {
+        return auth()->user()->bands()->where('bandId', $bandId)->exists();
+    }
+
+    private function ThrowNoAuthorizationResponse()
+    {
+        return  response()->json(['message' => 'Not Your Band'], 403);
     }
 }
